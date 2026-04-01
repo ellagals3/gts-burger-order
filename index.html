@@ -687,53 +687,6 @@
     </style>
 </head>
 <body>
-    <!-- Firebase Setup Screen -->
-    <div class="setup-overlay" id="setupOverlay" style="display:none;">
-        <div class="setup-card">
-            <h2>🔥 Firebase 연동 설정</h2>
-            <p>팀원들과 실시간으로 주문을 공유하려면 Firebase 프로젝트가 필요합니다.<br>아래 단계를 따라 설정해주세요.</p>
-
-            <div class="step">
-                <div class="step-title"><span class="step-num">1</span> Firebase 프로젝트 생성</div>
-                <div class="step-desc">
-                    <a href="https://console.firebase.google.com/" target="_blank">Firebase Console</a>에서 새 프로젝트를 만드세요.
-                </div>
-            </div>
-
-            <div class="step">
-                <div class="step-title"><span class="step-num">2</span> Realtime Database 활성화</div>
-                <div class="step-desc">
-                    프로젝트 > Build > Realtime Database > <code>데이터베이스 만들기</code> 클릭<br>
-                    보안 규칙은 <code>테스트 모드</code>로 시작하세요.
-                </div>
-            </div>
-
-            <div class="step">
-                <div class="step-title"><span class="step-num">3</span> 웹 앱 등록 후 config 붙여넣기</div>
-                <div class="step-desc">
-                    프로젝트 설정 > 내 앱 > 웹 앱 추가 (<code>&lt;/&gt;</code> 아이콘)<br>
-                    <code>firebaseConfig</code> 객체를 아래에 붙여넣으세요.
-                </div>
-            </div>
-
-            <textarea class="config-input" id="configInput" placeholder='{
-  "apiKey": "AIzaSy...",
-  "authDomain": "your-project.firebaseapp.com",
-  "databaseURL": "https://your-project-default-rtdb.firebaseio.com",
-  "projectId": "your-project",
-  "storageBucket": "your-project.appspot.com",
-  "messagingSenderId": "123456789",
-  "appId": "1:123456789:web:abc123"
-}'></textarea>
-            <div class="setup-error" id="setupError"></div>
-
-            <div class="setup-actions">
-                <button class="setup-btn setup-btn-secondary" onclick="skipFirebase()">오프라인 모드</button>
-                <button class="setup-btn setup-btn-primary" onclick="applyFirebaseConfig()">연동하기</button>
-            </div>
-        </div>
-    </div>
-
     <header>
         <h1>🍔 GTS버거 팀 주문</h1>
         <div class="header-right">
@@ -755,7 +708,6 @@
                 <div class="sync-dot offline" id="syncDot"></div>
                 <span id="syncLabel">오프라인</span>
             </div>
-            <button class="settings-btn" onclick="showSetup()">⚙️ 설정</button>
         </div>
     </header>
 
@@ -889,67 +841,18 @@ let firebaseReady = false;
 let dbRef = null;
 
 // =====================================================
-// FIREBASE CONFIG MANAGEMENT
+// FIREBASE CONFIG (하드코딩)
 // =====================================================
-function getSavedConfig() {
-    try {
-        return JSON.parse(localStorage.getItem('gts_firebase_config') || 'null');
-    } catch { return null; }
-}
-
-function saveConfig(config) {
-    localStorage.setItem('gts_firebase_config', JSON.stringify(config));
-}
-
-function showSetup() {
-    document.getElementById('setupOverlay').style.display = 'flex';
-}
-
-function hideSetup() {
-    document.getElementById('setupOverlay').style.display = 'none';
-}
-
-function skipFirebase() {
-    hideSetup();
-    loadOfflineState();
-    render();
-}
-
-function parseConfigInput(raw) {
-    let text = raw.trim();
-
-    // Handle if user pasted the full JS assignment: const firebaseConfig = {...};
-    const match = text.match(/\{[\s\S]*\}/);
-    if (match) text = match[0];
-
-    // Replace single quotes with double quotes for valid JSON
-    text = text.replace(/'/g, '"');
-    // Remove trailing commas before }
-    text = text.replace(/,\s*}/g, '}');
-
-    return JSON.parse(text);
-}
-
-function applyFirebaseConfig() {
-    const input = document.getElementById('configInput');
-    const errorEl = document.getElementById('setupError');
-    errorEl.style.display = 'none';
-
-    try {
-        const config = parseConfigInput(input.value);
-
-        if (!config.apiKey || !config.databaseURL || !config.projectId) {
-            throw new Error('apiKey, databaseURL, projectId는 필수입니다.');
-        }
-
-        saveConfig(config);
-        hideSetup();
-        initFirebase(config);
-    } catch (e) {
-        errorEl.textContent = '❌ 설정 오류: ' + e.message;
-        errorEl.style.display = 'block';
-    }
-}
+const FIREBASE_CONFIG = {
+    apiKey: "AIzaSyDerwdZRs2pZpk0LR7Q8S-zwGnB1FI1A2M",
+    authDomain: "gbstudio-304c5.firebaseapp.com",
+    databaseURL: "https://gbstudio-304c5-default-rtdb.firebaseio.com",
+    projectId: "gbstudio-304c5",
+    storageBucket: "gbstudio-304c5.firebasestorage.app",
+    messagingSenderId: "475998706977",
+    appId: "1:475998706977:web:813eaa1381a4cae0103260",
+    measurementId: "G-PPXL6JV275"
+};
 
 // =====================================================
 // FIREBASE INIT & REALTIME SYNC
@@ -1343,15 +1246,7 @@ function render() {
 // INIT
 // =====================================================
 (function init() {
-    const savedConfig = getSavedConfig();
-    if (savedConfig) {
-        hideSetup();
-        initFirebase(savedConfig);
-    } else {
-        showSetup();
-        loadOfflineState();
-        render();
-    }
+    initFirebase(FIREBASE_CONFIG);
 })();
 </script>
 </body>
