@@ -45,6 +45,12 @@
             gap: 10px;
         }
 
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+        }
+
         .header-summary {
             display: flex;
             gap: 24px;
@@ -65,6 +71,32 @@
         .header-summary .stat-label {
             font-size: 0.75rem;
             opacity: 0.85;
+        }
+
+        .sync-status {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.75rem;
+            opacity: 0.9;
+            background: rgba(255,255,255,0.15);
+            padding: 4px 10px;
+            border-radius: 12px;
+        }
+
+        .sync-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--success);
+            animation: pulse 2s infinite;
+        }
+
+        .sync-dot.offline { background: var(--danger); animation: none; }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
         }
 
         .app-layout {
@@ -465,6 +497,178 @@
             background: var(--primary-dark);
         }
 
+        /* Firebase Setup Screen */
+        .setup-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.85);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            backdrop-filter: blur(8px);
+        }
+
+        .setup-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 40px;
+            max-width: 560px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .setup-card h2 {
+            font-size: 1.4rem;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .setup-card p {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+
+        .setup-card .step {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 16px;
+            margin-bottom: 12px;
+        }
+
+        .setup-card .step-num {
+            display: inline-flex;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: var(--primary);
+            color: white;
+            font-size: 0.75rem;
+            font-weight: 700;
+            align-items: center;
+            justify-content: center;
+            margin-right: 8px;
+        }
+
+        .setup-card .step-title {
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-bottom: 6px;
+        }
+
+        .setup-card .step-desc {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            line-height: 1.5;
+        }
+
+        .setup-card .step-desc a {
+            color: var(--accent);
+            text-decoration: none;
+        }
+
+        .setup-card .step-desc a:hover {
+            text-decoration: underline;
+        }
+
+        .setup-card .step-desc code {
+            background: rgba(232,93,4,0.15);
+            padding: 1px 6px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            color: var(--accent);
+        }
+
+        .config-input {
+            width: 100%;
+            padding: 12px 14px;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.8rem;
+            resize: vertical;
+            min-height: 160px;
+            outline: none;
+            margin-top: 12px;
+        }
+
+        .config-input:focus {
+            border-color: var(--primary);
+        }
+
+        .config-input::placeholder {
+            color: var(--text-muted);
+            opacity: 0.5;
+        }
+
+        .setup-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 16px;
+        }
+
+        .setup-btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+        }
+
+        .setup-btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .setup-btn-primary:hover {
+            background: var(--primary-dark);
+        }
+
+        .setup-btn-secondary {
+            background: var(--bg);
+            color: var(--text-muted);
+            border: 1px solid var(--border);
+        }
+
+        .setup-btn-secondary:hover {
+            color: var(--text);
+            border-color: var(--text-muted);
+        }
+
+        .setup-error {
+            color: var(--danger);
+            font-size: 0.8rem;
+            margin-top: 8px;
+            display: none;
+        }
+
+        .settings-btn {
+            background: none;
+            border: 1px solid rgba(255,255,255,0.3);
+            color: white;
+            padding: 4px 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.75rem;
+            opacity: 0.7;
+            transition: opacity 0.15s;
+        }
+
+        .settings-btn:hover {
+            opacity: 1;
+        }
+
         /* Scrollbar */
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
@@ -483,21 +687,75 @@
     </style>
 </head>
 <body>
+    <!-- Firebase Setup Screen -->
+    <div class="setup-overlay" id="setupOverlay" style="display:none;">
+        <div class="setup-card">
+            <h2>🔥 Firebase 연동 설정</h2>
+            <p>팀원들과 실시간으로 주문을 공유하려면 Firebase 프로젝트가 필요합니다.<br>아래 단계를 따라 설정해주세요.</p>
+
+            <div class="step">
+                <div class="step-title"><span class="step-num">1</span> Firebase 프로젝트 생성</div>
+                <div class="step-desc">
+                    <a href="https://console.firebase.google.com/" target="_blank">Firebase Console</a>에서 새 프로젝트를 만드세요.
+                </div>
+            </div>
+
+            <div class="step">
+                <div class="step-title"><span class="step-num">2</span> Realtime Database 활성화</div>
+                <div class="step-desc">
+                    프로젝트 > Build > Realtime Database > <code>데이터베이스 만들기</code> 클릭<br>
+                    보안 규칙은 <code>테스트 모드</code>로 시작하세요.
+                </div>
+            </div>
+
+            <div class="step">
+                <div class="step-title"><span class="step-num">3</span> 웹 앱 등록 후 config 붙여넣기</div>
+                <div class="step-desc">
+                    프로젝트 설정 > 내 앱 > 웹 앱 추가 (<code>&lt;/&gt;</code> 아이콘)<br>
+                    <code>firebaseConfig</code> 객체를 아래에 붙여넣으세요.
+                </div>
+            </div>
+
+            <textarea class="config-input" id="configInput" placeholder='{
+  "apiKey": "AIzaSy...",
+  "authDomain": "your-project.firebaseapp.com",
+  "databaseURL": "https://your-project-default-rtdb.firebaseio.com",
+  "projectId": "your-project",
+  "storageBucket": "your-project.appspot.com",
+  "messagingSenderId": "123456789",
+  "appId": "1:123456789:web:abc123"
+}'></textarea>
+            <div class="setup-error" id="setupError"></div>
+
+            <div class="setup-actions">
+                <button class="setup-btn setup-btn-secondary" onclick="skipFirebase()">오프라인 모드</button>
+                <button class="setup-btn setup-btn-primary" onclick="applyFirebaseConfig()">연동하기</button>
+            </div>
+        </div>
+    </div>
+
     <header>
         <h1>🍔 GTS버거 팀 주문</h1>
-        <div class="header-summary">
-            <div class="stat">
-                <span class="stat-value" id="totalMembers">0</span>
-                <span class="stat-label">팀원</span>
+        <div class="header-right">
+            <div class="header-summary">
+                <div class="stat">
+                    <span class="stat-value" id="totalMembers">0</span>
+                    <span class="stat-label">팀원</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-value" id="totalOrders">0</span>
+                    <span class="stat-label">주문</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-value" id="totalPrice">₩0</span>
+                    <span class="stat-label">총 금액</span>
+                </div>
             </div>
-            <div class="stat">
-                <span class="stat-value" id="totalOrders">0</span>
-                <span class="stat-label">주문</span>
+            <div class="sync-status" id="syncStatus">
+                <div class="sync-dot offline" id="syncDot"></div>
+                <span id="syncLabel">오프라인</span>
             </div>
-            <div class="stat">
-                <span class="stat-value" id="totalPrice">₩0</span>
-                <span class="stat-label">총 금액</span>
-            </div>
+            <button class="settings-btn" onclick="showSetup()">⚙️ 설정</button>
         </div>
     </header>
 
@@ -532,7 +790,14 @@
         </main>
     </div>
 
+<!-- Firebase SDK (compat) -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+
 <script>
+// =====================================================
+// MENU DATA
+// =====================================================
 const MENU_DATA = {
     "베스트 버거": [
         { name: "할라피뇨 버거", price: 9900, desc: "비프패티, 스위스치즈, 양파, 할라피뇨" },
@@ -615,27 +880,181 @@ const AVATAR_COLORS = [
     "#7209B7", "#3A86FF", "#FB5607", "#8338EC", "#FF006E"
 ];
 
+// =====================================================
+// STATE
+// =====================================================
 let members = [];
 let selectedMemberId = null;
+let firebaseReady = false;
+let dbRef = null;
 
-function getState() {
+// =====================================================
+// FIREBASE CONFIG MANAGEMENT
+// =====================================================
+function getSavedConfig() {
     try {
-        return JSON.parse(localStorage.getItem('gts_order_state') || 'null');
+        return JSON.parse(localStorage.getItem('gts_firebase_config') || 'null');
     } catch { return null; }
 }
 
-function saveState() {
-    localStorage.setItem('gts_order_state', JSON.stringify({ members, selectedMemberId }));
+function saveConfig(config) {
+    localStorage.setItem('gts_firebase_config', JSON.stringify(config));
 }
 
-function loadState() {
-    const state = getState();
-    if (state) {
-        members = state.members || [];
-        selectedMemberId = state.selectedMemberId;
+function showSetup() {
+    document.getElementById('setupOverlay').style.display = 'flex';
+}
+
+function hideSetup() {
+    document.getElementById('setupOverlay').style.display = 'none';
+}
+
+function skipFirebase() {
+    hideSetup();
+    loadOfflineState();
+    render();
+}
+
+function parseConfigInput(raw) {
+    let text = raw.trim();
+
+    // Handle if user pasted the full JS assignment: const firebaseConfig = {...};
+    const match = text.match(/\{[\s\S]*\}/);
+    if (match) text = match[0];
+
+    // Replace single quotes with double quotes for valid JSON
+    text = text.replace(/'/g, '"');
+    // Remove trailing commas before }
+    text = text.replace(/,\s*}/g, '}');
+
+    return JSON.parse(text);
+}
+
+function applyFirebaseConfig() {
+    const input = document.getElementById('configInput');
+    const errorEl = document.getElementById('setupError');
+    errorEl.style.display = 'none';
+
+    try {
+        const config = parseConfigInput(input.value);
+
+        if (!config.apiKey || !config.databaseURL || !config.projectId) {
+            throw new Error('apiKey, databaseURL, projectId는 필수입니다.');
+        }
+
+        saveConfig(config);
+        hideSetup();
+        initFirebase(config);
+    } catch (e) {
+        errorEl.textContent = '❌ 설정 오류: ' + e.message;
+        errorEl.style.display = 'block';
     }
 }
 
+// =====================================================
+// FIREBASE INIT & REALTIME SYNC
+// =====================================================
+function initFirebase(config) {
+    try {
+        // Avoid re-init
+        if (firebase.apps.length === 0) {
+            firebase.initializeApp(config);
+        }
+
+        const db = firebase.database();
+        dbRef = db.ref('gts-burger-order');
+
+        // Listen for real-time changes
+        dbRef.child('members').on('value', (snapshot) => {
+            const data = snapshot.val();
+            // Convert Firebase object to array
+            if (data) {
+                members = Object.keys(data).map(key => {
+                    const m = data[key];
+                    return { ...m, id: key, orders: m.orders || {} };
+                });
+            } else {
+                members = [];
+            }
+
+            // If selected member was removed by someone else, deselect
+            if (selectedMemberId && !members.find(m => m.id === selectedMemberId)) {
+                selectedMemberId = null;
+            }
+
+            render();
+        });
+
+        // Connection state
+        const connRef = firebase.database().ref('.info/connected');
+        connRef.on('value', (snap) => {
+            updateSyncStatus(snap.val() === true);
+        });
+
+        firebaseReady = true;
+        updateSyncStatus(true);
+    } catch (e) {
+        console.error('Firebase init error:', e);
+        updateSyncStatus(false);
+        loadOfflineState();
+        render();
+    }
+}
+
+function updateSyncStatus(connected) {
+    const dot = document.getElementById('syncDot');
+    const label = document.getElementById('syncLabel');
+    if (connected && firebaseReady) {
+        dot.classList.remove('offline');
+        label.textContent = '실시간 동기화';
+    } else {
+        dot.classList.add('offline');
+        label.textContent = firebaseReady ? '연결 끊김' : '오프라인';
+    }
+}
+
+// =====================================================
+// DATA OPERATIONS (Firebase or localStorage)
+// =====================================================
+function saveMemberToFirebase(member) {
+    if (!firebaseReady || !dbRef) return;
+    const { id, ...data } = member;
+    dbRef.child('members').child(id).set(data);
+}
+
+function removeMemberFromFirebase(id) {
+    if (!firebaseReady || !dbRef) return;
+    dbRef.child('members').child(id).remove();
+}
+
+function saveAllToFirebase() {
+    if (!firebaseReady || !dbRef) return;
+    const data = {};
+    members.forEach(m => {
+        const { id, ...rest } = m;
+        data[id] = rest;
+    });
+    dbRef.child('members').set(data);
+}
+
+// Offline fallback
+function loadOfflineState() {
+    try {
+        const state = JSON.parse(localStorage.getItem('gts_order_state') || 'null');
+        if (state) {
+            members = state.members || [];
+            selectedMemberId = state.selectedMemberId;
+        }
+    } catch {}
+}
+
+function saveOfflineState() {
+    localStorage.setItem('gts_order_state', JSON.stringify({ members, selectedMemberId }));
+}
+
+// =====================================================
+// MEMBER & ORDER OPERATIONS
+// =====================================================
 function generateId() {
     return Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
 }
@@ -645,16 +1064,24 @@ function addMember() {
     const name = input.value.trim();
     if (!name) return;
 
-    members.push({
+    const member = {
         id: generateId(),
         name,
         color: AVATAR_COLORS[members.length % AVATAR_COLORS.length],
         orders: {}
-    });
+    };
+
+    if (firebaseReady) {
+        // Firebase will update via listener
+        const { id, ...data } = member;
+        dbRef.child('members').child(id).set(data);
+    } else {
+        members.push(member);
+        saveOfflineState();
+        render();
+    }
 
     input.value = '';
-    saveState();
-    render();
 }
 
 document.getElementById('newMemberInput').addEventListener('keydown', e => {
@@ -662,15 +1089,18 @@ document.getElementById('newMemberInput').addEventListener('keydown', e => {
 });
 
 function removeMember(id) {
-    members = members.filter(m => m.id !== id);
+    if (firebaseReady) {
+        removeMemberFromFirebase(id);
+    } else {
+        members = members.filter(m => m.id !== id);
+        saveOfflineState();
+    }
     if (selectedMemberId === id) selectedMemberId = null;
-    saveState();
     render();
 }
 
 function selectMember(id) {
     selectedMemberId = id;
-    saveState();
     render();
 }
 
@@ -688,7 +1118,12 @@ function toggleItem(menuKey, index) {
     } else {
         member.orders[key] = 1;
     }
-    saveState();
+
+    if (firebaseReady) {
+        saveMemberToFirebase(member);
+    } else {
+        saveOfflineState();
+    }
     render();
 }
 
@@ -704,17 +1139,25 @@ function changeQty(menuKey, index, delta) {
     } else {
         member.orders[key] = next;
     }
-    saveState();
+
+    if (firebaseReady) {
+        saveMemberToFirebase(member);
+    } else {
+        saveOfflineState();
+    }
     render();
 }
 
+// =====================================================
+// FORMATTING & CALCULATIONS
+// =====================================================
 function formatPrice(n) {
     return '₩' + n.toLocaleString('ko-KR');
 }
 
 function getMemberTotal(member) {
     let total = 0;
-    for (const [key, qty] of Object.entries(member.orders)) {
+    for (const [key, qty] of Object.entries(member.orders || {})) {
         const [cat, idx] = key.split('::');
         const item = MENU_DATA[cat]?.[parseInt(idx)];
         if (item) total += item.price * qty;
@@ -727,9 +1170,12 @@ function getGrandTotal() {
 }
 
 function getTotalOrderCount() {
-    return members.reduce((sum, m) => sum + Object.values(m.orders).reduce((s, q) => s + q, 0), 0);
+    return members.reduce((sum, m) => sum + Object.values(m.orders || {}).reduce((s, q) => s + q, 0), 0);
 }
 
+// =====================================================
+// TABS
+// =====================================================
 function switchTab(tab) {
     document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
     document.getElementById('menuView').style.display = tab === 'menu' ? '' : 'none';
@@ -737,10 +1183,13 @@ function switchTab(tab) {
     if (tab === 'summary') renderSummary();
 }
 
+// =====================================================
+// RENDERING
+// =====================================================
 function renderMembers() {
     const list = document.getElementById('memberList');
     list.innerHTML = members.map(m => {
-        const orderCount = Object.values(m.orders).reduce((s, q) => s + q, 0);
+        const orderCount = Object.values(m.orders || {}).reduce((s, q) => s + q, 0);
         const total = getMemberTotal(m);
         return `
             <div class="member-item ${m.id === selectedMemberId ? 'active' : ''}" onclick="selectMember('${m.id}')">
@@ -781,7 +1230,7 @@ function renderMenu() {
             <div class="menu-grid">
                 ${items.map((item, i) => {
                     const key = `${category}::${i}`;
-                    const qty = member.orders[key] || 0;
+                    const qty = (member.orders || {})[key] || 0;
                     return `
                         <div class="menu-card ${qty > 0 ? 'selected' : ''}" onclick="toggleItem('${category}', ${i})">
                             <div class="check-badge">${qty}</div>
@@ -805,7 +1254,7 @@ function renderMenu() {
 
 function renderSummary() {
     const view = document.getElementById('summaryView');
-    const orderedMembers = members.filter(m => Object.keys(m.orders).length > 0);
+    const orderedMembers = members.filter(m => Object.keys(m.orders || {}).length > 0);
 
     if (orderedMembers.length === 0) {
         view.innerHTML = '<div class="no-member-msg"><div class="icon">📋</div><div>아직 주문이 없습니다</div></div>';
@@ -828,7 +1277,7 @@ function renderSummary() {
                     <tbody>
         `;
 
-        for (const [key, qty] of Object.entries(m.orders)) {
+        for (const [key, qty] of Object.entries(m.orders || {})) {
             const [cat, idx] = key.split('::');
             const item = MENU_DATA[cat]?.[parseInt(idx)];
             if (!item) continue;
@@ -852,12 +1301,12 @@ function renderSummary() {
 }
 
 function copySummary() {
-    const orderedMembers = members.filter(m => Object.keys(m.orders).length > 0);
+    const orderedMembers = members.filter(m => Object.keys(m.orders || {}).length > 0);
     let text = '🍔 GTS버거 팀 주문\n' + '='.repeat(30) + '\n\n';
 
     orderedMembers.forEach(m => {
         text += `▸ ${m.name}\n`;
-        for (const [key, qty] of Object.entries(m.orders)) {
+        for (const [key, qty] of Object.entries(m.orders || {})) {
             const [cat, idx] = key.split('::');
             const item = MENU_DATA[cat]?.[parseInt(idx)];
             if (!item) continue;
@@ -890,8 +1339,20 @@ function render() {
     }
 }
 
-loadState();
-render();
+// =====================================================
+// INIT
+// =====================================================
+(function init() {
+    const savedConfig = getSavedConfig();
+    if (savedConfig) {
+        hideSetup();
+        initFirebase(savedConfig);
+    } else {
+        showSetup();
+        loadOfflineState();
+        render();
+    }
+})();
 </script>
 </body>
 </html>
