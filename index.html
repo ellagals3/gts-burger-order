@@ -1,0 +1,897 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GTS버거 팀 주문 대시보드</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --primary: #E85D04;
+            --primary-dark: #DC2F02;
+            --bg: #1a1a2e;
+            --bg-card: #16213e;
+            --bg-card-hover: #1a2745;
+            --text: #eee;
+            --text-muted: #8892b0;
+            --accent: #F48C06;
+            --success: #06D6A0;
+            --danger: #EF476F;
+            --border: #2a2a4a;
+        }
+
+        body {
+            font-family: 'Segoe UI', -apple-system, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        header {
+            background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+            padding: 20px 32px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
+
+        header h1 {
+            font-size: 1.6rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .header-summary {
+            display: flex;
+            gap: 24px;
+            font-size: 0.95rem;
+        }
+
+        .header-summary .stat {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .header-summary .stat-value {
+            font-size: 1.3rem;
+            font-weight: 700;
+        }
+
+        .header-summary .stat-label {
+            font-size: 0.75rem;
+            opacity: 0.85;
+        }
+
+        .app-layout {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            height: calc(100vh - 72px);
+        }
+
+        /* Sidebar */
+        .sidebar {
+            background: var(--bg-card);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .sidebar-header {
+            padding: 16px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .sidebar-header h2 {
+            font-size: 1rem;
+            font-weight: 600;
+        }
+
+        .add-member-form {
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            gap: 8px;
+        }
+
+        .add-member-form input {
+            flex: 1;
+            padding: 8px 12px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: var(--bg);
+            color: var(--text);
+            font-size: 0.85rem;
+            outline: none;
+        }
+
+        .add-member-form input:focus {
+            border-color: var(--primary);
+        }
+
+        .add-member-form button {
+            padding: 8px 14px;
+            background: var(--primary);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 0.85rem;
+            white-space: nowrap;
+        }
+
+        .add-member-form button:hover {
+            background: var(--primary-dark);
+        }
+
+        .member-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 8px;
+        }
+
+        .member-item {
+            display: flex;
+            align-items: center;
+            padding: 10px 12px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.15s;
+            gap: 10px;
+            margin-bottom: 4px;
+        }
+
+        .member-item:hover {
+            background: var(--bg-card-hover);
+        }
+
+        .member-item.active {
+            background: rgba(232, 93, 4, 0.15);
+            border: 1px solid rgba(232, 93, 4, 0.3);
+        }
+
+        .member-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.85rem;
+            flex-shrink: 0;
+        }
+
+        .member-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .member-name {
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .member-order-count {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .member-delete {
+            opacity: 0;
+            background: none;
+            border: none;
+            color: var(--danger);
+            cursor: pointer;
+            font-size: 1.1rem;
+            padding: 4px;
+            transition: opacity 0.15s;
+        }
+
+        .member-item:hover .member-delete {
+            opacity: 1;
+        }
+
+        /* Main Content */
+        .main-content {
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .tabs {
+            display: flex;
+            background: var(--bg-card);
+            border-bottom: 1px solid var(--border);
+            padding: 0 16px;
+        }
+
+        .tab {
+            padding: 14px 20px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            border-bottom: 2px solid transparent;
+            transition: all 0.15s;
+        }
+
+        .tab:hover {
+            color: var(--text);
+        }
+
+        .tab.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+        }
+
+        .content-area {
+            flex: 1;
+            overflow-y: auto;
+            padding: 24px;
+        }
+
+        /* Menu Grid */
+        .menu-category {
+            margin-bottom: 32px;
+        }
+
+        .menu-category h3 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 14px;
+            color: var(--accent);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .menu-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 12px;
+        }
+
+        .menu-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px;
+            cursor: pointer;
+            transition: all 0.15s;
+            position: relative;
+        }
+
+        .menu-card:hover {
+            border-color: var(--primary);
+            background: var(--bg-card-hover);
+            transform: translateY(-1px);
+        }
+
+        .menu-card.selected {
+            border-color: var(--success);
+            background: rgba(6, 214, 160, 0.08);
+        }
+
+        .menu-card .check-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: var(--success);
+            color: white;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: 700;
+        }
+
+        .menu-card.selected .check-badge {
+            display: flex;
+        }
+
+        .menu-card-name {
+            font-weight: 600;
+            font-size: 0.95rem;
+            margin-bottom: 4px;
+        }
+
+        .menu-card-desc {
+            font-size: 0.78rem;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+            line-height: 1.4;
+        }
+
+        .menu-card-price {
+            font-weight: 700;
+            color: var(--accent);
+            font-size: 0.95rem;
+        }
+
+        .menu-card-qty {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .qty-btn {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            border: 1px solid var(--border);
+            background: var(--bg);
+            color: var(--text);
+            font-size: 1rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .qty-btn:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .qty-value {
+            font-weight: 600;
+            min-width: 20px;
+            text-align: center;
+        }
+
+        /* No member selected */
+        .no-member-msg {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: var(--text-muted);
+            gap: 12px;
+        }
+
+        .no-member-msg .icon {
+            font-size: 3rem;
+        }
+
+        /* Order Summary */
+        .summary-view {
+            display: none;
+        }
+
+        .summary-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: var(--bg-card);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .summary-table th, .summary-table td {
+            padding: 12px 16px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .summary-table th {
+            background: rgba(232, 93, 4, 0.1);
+            font-weight: 600;
+            font-size: 0.85rem;
+            color: var(--accent);
+        }
+
+        .summary-table td {
+            font-size: 0.9rem;
+        }
+
+        .summary-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .summary-total-row {
+            background: rgba(232, 93, 4, 0.05);
+            font-weight: 700;
+        }
+
+        .summary-member-section {
+            margin-bottom: 24px;
+        }
+
+        .summary-member-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .summary-member-name {
+            font-weight: 700;
+            font-size: 1.05rem;
+        }
+
+        .summary-member-total {
+            color: var(--accent);
+            font-weight: 700;
+        }
+
+        .grand-total {
+            background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+            border-radius: 12px;
+            padding: 20px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 24px;
+        }
+
+        .grand-total-label {
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .grand-total-value {
+            font-size: 1.6rem;
+            font-weight: 700;
+        }
+
+        /* Copy button */
+        .copy-btn {
+            padding: 10px 20px;
+            background: var(--primary);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 0.9rem;
+            margin-bottom: 20px;
+        }
+
+        .copy-btn:hover {
+            background: var(--primary-dark);
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .app-layout {
+                grid-template-columns: 1fr;
+            }
+            .sidebar {
+                max-height: 200px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>🍔 GTS버거 팀 주문</h1>
+        <div class="header-summary">
+            <div class="stat">
+                <span class="stat-value" id="totalMembers">0</span>
+                <span class="stat-label">팀원</span>
+            </div>
+            <div class="stat">
+                <span class="stat-value" id="totalOrders">0</span>
+                <span class="stat-label">주문</span>
+            </div>
+            <div class="stat">
+                <span class="stat-value" id="totalPrice">₩0</span>
+                <span class="stat-label">총 금액</span>
+            </div>
+        </div>
+    </header>
+
+    <div class="app-layout">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h2>팀원 목록</h2>
+            </div>
+            <div class="add-member-form">
+                <input type="text" id="newMemberInput" placeholder="이름 입력" />
+                <button onclick="addMember()">추가</button>
+            </div>
+            <div class="member-list" id="memberList"></div>
+        </aside>
+
+        <main class="main-content">
+            <div class="tabs">
+                <div class="tab active" data-tab="menu" onclick="switchTab('menu')">메뉴 선택</div>
+                <div class="tab" data-tab="summary" onclick="switchTab('summary')">주문 요약</div>
+            </div>
+
+            <div class="content-area" id="contentArea">
+                <div id="menuView">
+                    <div class="no-member-msg" id="noMemberMsg">
+                        <div class="icon">👈</div>
+                        <div>팀원을 추가하고 선택해주세요</div>
+                    </div>
+                    <div id="menuContainer" style="display:none;"></div>
+                </div>
+                <div class="summary-view" id="summaryView"></div>
+            </div>
+        </main>
+    </div>
+
+<script>
+const MENU_DATA = {
+    "베스트 버거": [
+        { name: "할라피뇨 버거", price: 9900, desc: "비프패티, 스위스치즈, 양파, 할라피뇨" },
+        { name: "트리플 쓰렛", price: 20000, desc: "비프+치킨+쉬림프 패티, 다중치즈, 베이컨" },
+        { name: "쉬림프 버거", price: 12500, desc: "통새우패티, 그릴드쉬림프, 칠리소스" },
+        { name: "렌고쿠 버거", price: 13500, desc: "비프+치킨, 렌고쿠&불고기 소스" },
+        { name: "칠리 비프 버거", price: 12000, desc: "비프넥패티, 홈메이드 칠리, 베이컨" },
+        { name: "더블 렌고쿠", price: 14500, desc: "비프+치킨, 더블소스, 베이컨" },
+        { name: "치킨 스테이크 버거", price: 12000, desc: "크리스피치킨, 리코타&스위스치즈" },
+        { name: "클래식 더블", price: 13500, desc: "더블비프패티, 치즈, 베이컨" },
+        { name: "쿼드 스택", price: 20500, desc: "4x비프패티, 4x치즈, 4x베이컨" },
+        { name: "머쉬룸 더블", price: 14500, desc: "더블비프패티, 그릴드머쉬룸" },
+    ],
+    "싱글 버거": [
+        { name: "베이직 버거", price: 8900, desc: "100% 비프패티, 양상추, 치즈, 토마토" },
+        { name: "베이컨 버거", price: 10400, desc: "비프, 치즈, 베이컨, 토마토, 양상추" },
+        { name: "더블 치즈", price: 10400, desc: "더블치즈, 베이컨, 참깨번" },
+        { name: "불고기 버거", price: 8900, desc: "비프, 홈메이드 불고기소스" },
+        { name: "스파이시 불고기", price: 10400, desc: "비프, 불고기소스, 치즈, 베이컨" },
+    ],
+    "더블 버거": [
+        { name: "더블 클래식", price: 12400, desc: "더블비프패티, 더블치즈" },
+        { name: "프리미엄 더블", price: 13400, desc: "더블비프, 트리플치즈, 베이컨" },
+        { name: "그릴드어니언 더블", price: 12400, desc: "더블패티, 그릴드어니언" },
+        { name: "불고기 더블", price: 13400, desc: "더블비프, 불고기소스, 베이컨" },
+        { name: "비프&치킨", price: 11900, desc: "비프+치킨허벅지스테이크" },
+        { name: "치킨베이컨 더블", price: 13400, desc: "비프+치킨, 베이컨, 치즈" },
+        { name: "쉬림프&비프", price: 12900, desc: "비프+통새우패티" },
+        { name: "렌고쿠 스페셜", price: 13500, desc: "비프+치킨, 더블소스" },
+    ],
+    "스페셜 버거": [
+        { name: "핫치킨 버거", price: 12500, desc: "핫치킨패티, 치즈, 로메인" },
+        { name: "트리플 비프", price: 16500, desc: "트리플비프패티, 오리지널소스" },
+        { name: "파인애플 버거", price: 12500, desc: "비프, 파인애플, 야채" },
+        { name: "해쉬브라운 버거", price: 11900, desc: "비프, 해쉬브라운, 베이컨" },
+        { name: "아보카도 버거", price: 12500, desc: "100% 아보카도퓨레, 비프, 칠리미트소스" },
+        { name: "크리미 불고기", price: 8900, desc: "비프, 크리미&불고기 소스" },
+        { name: "리코타 치즈", price: 12500, desc: "비프, 리코타치즈, 베이컨" },
+        { name: "트리플 치즈", price: 12500, desc: "3종치즈, 비프" },
+        { name: "말라 쉬림프", price: 14000, desc: "쉬림프패티, 말라소스, 베이컨" },
+        { name: "크리스피 치킨", price: 9400, desc: "크리스피치킨패티, 아메리칸치즈" },
+    ],
+    "사이드": [
+        { name: "오리지널 감자튀김", price: 3300, desc: "" },
+        { name: "치즈 감자튀김", price: 4000, desc: "" },
+        { name: "베이컨치즈 감자튀김", price: 5000, desc: "" },
+        { name: "칠리미트 감자튀김", price: 6500, desc: "" },
+        { name: "갈릭 감자튀김", price: 6000, desc: "버터갈릭 시즈닝" },
+        { name: "트러플 감자튀김", price: 8000, desc: "" },
+        { name: "고구마 튀김", price: 6000, desc: "마요네즈소스" },
+        { name: "프라이드 치킨", price: 14900, desc: "" },
+        { name: "치킨허벅지", price: 4300, desc: "점보 치킨허벅지" },
+    ],
+    "음료": [
+        { name: "아메리카노", price: 4000, desc: "" },
+        { name: "라떼", price: 5000, desc: "" },
+        { name: "코카콜라", price: 2500, desc: "355ml" },
+        { name: "코카콜라 제로", price: 2500, desc: "355ml" },
+        { name: "스프라이트", price: 2500, desc: "355ml" },
+        { name: "닥터페퍼", price: 2500, desc: "355ml" },
+        { name: "애리조나 아이스티", price: 5000, desc: "650ml" },
+        { name: "몬스터 에너지 울트라", price: 4000, desc: "" },
+        { name: "물", price: 1000, desc: "500ml" },
+    ],
+    "쉐이크": [
+        { name: "쉐이크 (5가지맛)", price: 7000, desc: "맛 선택 가능" },
+    ],
+    "세트": [
+        { name: "프리미엄 쉐이크&감튀 세트", price: 13000, desc: "밀크쉐이크+감자튀김" },
+        { name: "스탠다드 쉐이크&감튀 세트", price: 10000, desc: "밀크쉐이크+감자튀김" },
+        { name: "오리지널감튀+음료 세트", price: 6000, desc: "" },
+        { name: "치즈감튀+음료 세트", price: 7000, desc: "" },
+        { name: "베이컨치즈감튀+음료 세트", price: 8500, desc: "" },
+        { name: "트러플감튀+음료 세트", price: 10000, desc: "" },
+    ],
+};
+
+const AVATAR_COLORS = [
+    "#E85D04", "#06D6A0", "#118AB2", "#EF476F", "#FFD166",
+    "#7209B7", "#3A86FF", "#FB5607", "#8338EC", "#FF006E"
+];
+
+let members = [];
+let selectedMemberId = null;
+
+function getState() {
+    try {
+        return JSON.parse(localStorage.getItem('gts_order_state') || 'null');
+    } catch { return null; }
+}
+
+function saveState() {
+    localStorage.setItem('gts_order_state', JSON.stringify({ members, selectedMemberId }));
+}
+
+function loadState() {
+    const state = getState();
+    if (state) {
+        members = state.members || [];
+        selectedMemberId = state.selectedMemberId;
+    }
+}
+
+function generateId() {
+    return Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+}
+
+function addMember() {
+    const input = document.getElementById('newMemberInput');
+    const name = input.value.trim();
+    if (!name) return;
+
+    members.push({
+        id: generateId(),
+        name,
+        color: AVATAR_COLORS[members.length % AVATAR_COLORS.length],
+        orders: {}
+    });
+
+    input.value = '';
+    saveState();
+    render();
+}
+
+document.getElementById('newMemberInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter') addMember();
+});
+
+function removeMember(id) {
+    members = members.filter(m => m.id !== id);
+    if (selectedMemberId === id) selectedMemberId = null;
+    saveState();
+    render();
+}
+
+function selectMember(id) {
+    selectedMemberId = id;
+    saveState();
+    render();
+}
+
+function getMember(id) {
+    return members.find(m => m.id === id);
+}
+
+function toggleItem(menuKey, index) {
+    const member = getMember(selectedMemberId);
+    if (!member) return;
+
+    const key = `${menuKey}::${index}`;
+    if (member.orders[key]) {
+        delete member.orders[key];
+    } else {
+        member.orders[key] = 1;
+    }
+    saveState();
+    render();
+}
+
+function changeQty(menuKey, index, delta) {
+    const member = getMember(selectedMemberId);
+    if (!member) return;
+
+    const key = `${menuKey}::${index}`;
+    const current = member.orders[key] || 0;
+    const next = current + delta;
+    if (next <= 0) {
+        delete member.orders[key];
+    } else {
+        member.orders[key] = next;
+    }
+    saveState();
+    render();
+}
+
+function formatPrice(n) {
+    return '₩' + n.toLocaleString('ko-KR');
+}
+
+function getMemberTotal(member) {
+    let total = 0;
+    for (const [key, qty] of Object.entries(member.orders)) {
+        const [cat, idx] = key.split('::');
+        const item = MENU_DATA[cat]?.[parseInt(idx)];
+        if (item) total += item.price * qty;
+    }
+    return total;
+}
+
+function getGrandTotal() {
+    return members.reduce((sum, m) => sum + getMemberTotal(m), 0);
+}
+
+function getTotalOrderCount() {
+    return members.reduce((sum, m) => sum + Object.values(m.orders).reduce((s, q) => s + q, 0), 0);
+}
+
+function switchTab(tab) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
+    document.getElementById('menuView').style.display = tab === 'menu' ? '' : 'none';
+    document.getElementById('summaryView').style.display = tab === 'summary' ? 'block' : 'none';
+    if (tab === 'summary') renderSummary();
+}
+
+function renderMembers() {
+    const list = document.getElementById('memberList');
+    list.innerHTML = members.map(m => {
+        const orderCount = Object.values(m.orders).reduce((s, q) => s + q, 0);
+        const total = getMemberTotal(m);
+        return `
+            <div class="member-item ${m.id === selectedMemberId ? 'active' : ''}" onclick="selectMember('${m.id}')">
+                <div class="member-avatar" style="background:${m.color}">${m.name[0]}</div>
+                <div class="member-info">
+                    <div class="member-name">${m.name}</div>
+                    <div class="member-order-count">${orderCount > 0 ? `${orderCount}개 · ${formatPrice(total)}` : '미선택'}</div>
+                </div>
+                <button class="member-delete" onclick="event.stopPropagation();removeMember('${m.id}')" title="삭제">✕</button>
+            </div>
+        `;
+    }).join('');
+}
+
+function renderMenu() {
+    const member = getMember(selectedMemberId);
+    const noMsg = document.getElementById('noMemberMsg');
+    const container = document.getElementById('menuContainer');
+
+    if (!member) {
+        noMsg.style.display = 'flex';
+        container.style.display = 'none';
+        return;
+    }
+
+    noMsg.style.display = 'none';
+    container.style.display = '';
+
+    const categoryIcons = {
+        "베스트 버거": "⭐", "싱글 버거": "🍔", "더블 버거": "🍔🍔",
+        "스페셜 버거": "✨", "사이드": "🍟", "음료": "🥤",
+        "쉐이크": "🥛", "세트": "🎁"
+    };
+
+    container.innerHTML = Object.entries(MENU_DATA).map(([category, items]) => `
+        <div class="menu-category">
+            <h3>${categoryIcons[category] || ''} ${category}</h3>
+            <div class="menu-grid">
+                ${items.map((item, i) => {
+                    const key = `${category}::${i}`;
+                    const qty = member.orders[key] || 0;
+                    return `
+                        <div class="menu-card ${qty > 0 ? 'selected' : ''}" onclick="toggleItem('${category}', ${i})">
+                            <div class="check-badge">${qty}</div>
+                            <div class="menu-card-name">${item.name}</div>
+                            ${item.desc ? `<div class="menu-card-desc">${item.desc}</div>` : ''}
+                            <div class="menu-card-price">${formatPrice(item.price)}</div>
+                            ${qty > 0 ? `
+                                <div class="menu-card-qty" onclick="event.stopPropagation()">
+                                    <button class="qty-btn" onclick="changeQty('${category}', ${i}, -1)">−</button>
+                                    <span class="qty-value">${qty}</span>
+                                    <button class="qty-btn" onclick="changeQty('${category}', ${i}, 1)">+</button>
+                                </div>
+                            ` : ''}
+                        </div>
+                    `;
+                }).join('')}
+            </div>
+        </div>
+    `).join('');
+}
+
+function renderSummary() {
+    const view = document.getElementById('summaryView');
+    const orderedMembers = members.filter(m => Object.keys(m.orders).length > 0);
+
+    if (orderedMembers.length === 0) {
+        view.innerHTML = '<div class="no-member-msg"><div class="icon">📋</div><div>아직 주문이 없습니다</div></div>';
+        return;
+    }
+
+    let html = '<button class="copy-btn" onclick="copySummary()">📋 주문 내용 복사</button>';
+
+    orderedMembers.forEach(m => {
+        const total = getMemberTotal(m);
+        html += `
+            <div class="summary-member-section">
+                <div class="summary-member-header">
+                    <div class="member-avatar" style="background:${m.color};width:30px;height:30px;font-size:0.75rem">${m.name[0]}</div>
+                    <span class="summary-member-name">${m.name}</span>
+                    <span class="summary-member-total">${formatPrice(total)}</span>
+                </div>
+                <table class="summary-table">
+                    <thead><tr><th>메뉴</th><th>수량</th><th>가격</th></tr></thead>
+                    <tbody>
+        `;
+
+        for (const [key, qty] of Object.entries(m.orders)) {
+            const [cat, idx] = key.split('::');
+            const item = MENU_DATA[cat]?.[parseInt(idx)];
+            if (!item) continue;
+            html += `<tr><td>${item.name}</td><td>${qty}</td><td>${formatPrice(item.price * qty)}</td></tr>`;
+        }
+
+        html += `
+                    <tr class="summary-total-row"><td>소계</td><td></td><td>${formatPrice(total)}</td></tr>
+                    </tbody></table></div>
+        `;
+    });
+
+    html += `
+        <div class="grand-total">
+            <span class="grand-total-label">전체 합계</span>
+            <span class="grand-total-value">${formatPrice(getGrandTotal())}</span>
+        </div>
+    `;
+
+    view.innerHTML = html;
+}
+
+function copySummary() {
+    const orderedMembers = members.filter(m => Object.keys(m.orders).length > 0);
+    let text = '🍔 GTS버거 팀 주문\n' + '='.repeat(30) + '\n\n';
+
+    orderedMembers.forEach(m => {
+        text += `▸ ${m.name}\n`;
+        for (const [key, qty] of Object.entries(m.orders)) {
+            const [cat, idx] = key.split('::');
+            const item = MENU_DATA[cat]?.[parseInt(idx)];
+            if (!item) continue;
+            text += `  - ${item.name} x${qty} (${formatPrice(item.price * qty)})\n`;
+        }
+        text += `  소계: ${formatPrice(getMemberTotal(m))}\n\n`;
+    });
+
+    text += `${'='.repeat(30)}\n총 합계: ${formatPrice(getGrandTotal())}`;
+
+    navigator.clipboard.writeText(text).then(() => {
+        const btn = document.querySelector('.copy-btn');
+        btn.textContent = '✅ 복사 완료!';
+        setTimeout(() => btn.textContent = '📋 주문 내용 복사', 1500);
+    });
+}
+
+function updateHeaderStats() {
+    document.getElementById('totalMembers').textContent = members.length;
+    document.getElementById('totalOrders').textContent = getTotalOrderCount();
+    document.getElementById('totalPrice').textContent = formatPrice(getGrandTotal());
+}
+
+function render() {
+    renderMembers();
+    renderMenu();
+    updateHeaderStats();
+    if (document.querySelector('.tab[data-tab="summary"]').classList.contains('active')) {
+        renderSummary();
+    }
+}
+
+loadState();
+render();
+</script>
+</body>
+</html>
