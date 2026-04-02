@@ -400,6 +400,57 @@
             font-size: 3rem;
         }
 
+        .help-guide {
+            text-align: left;
+            max-width: 420px;
+            width: 100%;
+        }
+
+        .help-guide h3 {
+            font-size: 1.1rem;
+            color: var(--text);
+            margin-bottom: 16px;
+            font-weight: 700;
+        }
+
+        .help-step {
+            display: flex;
+            align-items: flex-start;
+            gap: 14px;
+            margin-bottom: 16px;
+            padding: 14px 16px;
+            background: rgba(255,255,255,0.04);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+        }
+
+        .help-step-num {
+            flex-shrink: 0;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: var(--primary);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.9rem;
+        }
+
+        .help-step-text {
+            font-size: 0.95rem;
+            color: var(--text);
+            line-height: 1.5;
+        }
+
+        .help-step-text .sub {
+            display: block;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
         /* Order Summary */
         .summary-view {
             display: none;
@@ -732,8 +783,22 @@
             <div class="content-area" id="contentArea">
                 <div id="menuView">
                     <div class="no-member-msg" id="noMemberMsg">
-                        <div class="icon">👈</div>
-                        <div>팀원을 추가하고 선택해주세요</div>
+                        <div class="icon">🍔</div>
+                        <div class="help-guide">
+                            <h3>주문 방법 안내</h3>
+                            <div class="help-step">
+                                <div class="help-step-num">1</div>
+                                <div class="help-step-text">좌측에서 <b>자기 이름</b>을 입력하고 추가</div>
+                            </div>
+                            <div class="help-step">
+                                <div class="help-step-num">2</div>
+                                <div class="help-step-text">추가된 <b>자기 이름</b>을 클릭</div>
+                            </div>
+                            <div class="help-step">
+                                <div class="help-step-num">3</div>
+                                <div class="help-step-text">원하는 메뉴 선택!<span class="sub">1인 1버거 + 사이드/음료/세트 가능 ☕ 커피는 별도 주문 예정</span></div>
+                            </div>
+                        </div>
                     </div>
                     <div id="menuContainer" style="display:none;"></div>
                 </div>
